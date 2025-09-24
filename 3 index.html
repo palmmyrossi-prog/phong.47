@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consumer Behavior Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #ede7f6 0%, #7c3aed 100%);
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <!-- Loading State -->
+    <div id="loading-message" class="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-xl text-center">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">กำลังโหลดข้อมูล...</h1>
+        <p class="text-gray-600">กรุณารอสักครู่</p>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div id="dashboard-content" class="max-w-7xl mx-auto bg-white p-8 rounded-2xl shadow-xl hidden">
+        <h1 class="text-4xl font-bold text-gray-800 mb-6 text-center">Consumer Behavior Dashboard</h1>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-blue-500 text-white rounded-xl p-6 shadow-lg flex flex-col items-center justify-center text-center">
+                <p class="text-sm font-medium opacity-80">จำนวนผู้ใช้งานทั้งหมด</p>
+                <p id="total-users" class="text-4xl font-bold mt-2">0</p>
+            </div>
+            <div class="bg-green-500 text-white rounded-xl p-6 shadow-lg flex flex-col items-center justify-center text-center">
+                <p class="text-sm font-medium opacity-80">คะแนนความพึงพอใจเฉลี่ย</p>
+                <p id="avg-satisfaction" class="text-4xl font-bold mt-2">0</p>
+            </div>
+            <div class="bg-yellow-500 text-white rounded-xl p-6 shadow-lg flex flex-col items-center justify-center text-center">
+                <p class="text-sm font-medium opacity-80">ค่าใช้จ่ายเฉลี่ย</p>
+                <p id="avg-spending" class="text-4xl font-bold mt-2">0</p>
+            </div>
+            <div class="bg-indigo-500 text-white rounded-xl p-6 shadow-lg flex flex-col items-center justify-center text-center">
+                <p class="text-sm font-medium opacity-80">ความน่าจะเป็นในการแนะนำเฉลี่ย</p>
+                <p id="avg-recommendation" class="text-4xl font-bold mt-2">0</p>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="bg-gray-50 rounded-2xl p-6 shadow-inner mb-8">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">จำนวนผู้ใช้งานตามแพลตฟอร์ม</h2>
+            <div class="w-full h-80 flex items-center justify-center">
+                <canvas id="platformChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Data Table Section -->
+        <div class="bg-gray-50 rounded-2xl p-6 shadow-inner">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4 text-center">ข้อมูลผู้ใช้งานทั้งหมด</h2>
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
+                <input type="text" id="searchInput" placeholder="ค้นหา..." class="w-full sm:w-auto flex-grow p-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+                <div class="flex items-center space-x-2">
+                    <label for="sort-by" class="text-gray-600 font-medium">จัดเรียง:</label>
+                    <select id="sort-by" class="p-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+                        <option value="customer_id">Customer ID</option>
+                        <option value="age">อายุ</option>
+                        <option value="satisfaction_score">คะแนนความพึงพอใจ</option>
+                        <option value="avg_spending">ค่าใช้จ่ายเฉลี่ย</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto rounded-xl shadow-md">
+                <table class="min-w-full bg-white text-gray-800 rounded-xl">
+                    <thead class="bg-gray-200 text-left">
+                        <tr>
+                            <th class="py-3 px-4 rounded-tl-xl">customer_id</th>
+                            <th class="py-3 px-4">age</th>
+                            <th class="py-3 px-4">gender</th>
+                            <th class="py-3 px-4">income_level</th>
+                            <th class="py-3 px-4">education</th>
+                            <th class="py-3 px-4">location</th>
+                            <th class="py-3 px-4">shopping_frequency</th>
+                            <th class="py-3 px-4">preferred_platform</th>
+                            <th class="py-3 px-4">avg_spending</th>
+                            <th class="py-3 px-4">payment_method</th>
+                            <th class="py-3 px-4">product_category</th>
+                            <th class="py-3 px-4">satisfaction_score</th>
+                            <th class="py-3 px-4">recommendation_likelihood</th>
+                            <th class="py-3 px-4 rounded-tr-xl">last_purchase_days</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody">
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTkAZm5QFai3TfW-X2OTqf_ijGNS9A1Qh9TyiHmXDitccHUJBVGWWzZrGSffwHlT6u_JAXKEjmHuKa5/pub?gid=1017908258&single=true&output=csv';
+            
+            const loadingMessage = document.getElementById('loading-message');
+            const dashboardContent = document.getElementById('dashboard-content');
+            
+            let chartInstance = null;
+            let initialData = [];
+
+            // Function to parse CSV data
+            const parseCSV = (csv) => {
+                const lines = csv.split('\r\n').filter(line => line.trim() !== '');
+                if (lines.length < 2) {
+                    throw new Error("ไฟล์ CSV ต้องมีหัวตารางและอย่างน้อยหนึ่งแถวข้อมูล");
+                }
+                const headers = lines[0].split(',').map(h => h.trim());
+                const data = lines.slice(1).map(line => {
+                    const values = line.split(',').map(v => v.trim());
+                    return headers.reduce((obj, header, index) => {
+                        obj[header] = values[index] || '';
+                        return obj;
+                    }, {});
+                });
+                return data;
+            };
+
+            const initializeDashboard = (data) => {
+                initialData = data;
+                
+                // Hide loading and show dashboard
+                loadingMessage.classList.add('hidden');
+                dashboardContent.classList.remove('hidden');
+
+                // --- KPI Cards Calculation ---
+                const totalUsers = data.length;
+                const avgSatisfaction = (data.reduce((sum, row) => sum + parseFloat(row.satisfaction_score || 0), 0) / totalUsers).toFixed(2);
+                const avgSpending = (data.reduce((sum, row) => sum + parseFloat(row.avg_spending || 0), 0) / totalUsers).toFixed(0);
+                const avgRecommendation = (data.reduce((sum, row) => sum + parseFloat(row.recommendation_likelihood || 0), 0) / totalUsers).toFixed(2);
+
+                document.getElementById('total-users').textContent = totalUsers;
+                document.getElementById('avg-satisfaction').textContent = `${avgSatisfaction} / 5.0`;
+                document.getElementById('avg-spending').textContent = `${avgSpending} บาท`;
+                document.getElementById('avg-recommendation').textContent = `${avgRecommendation} / 10`;
+
+                // --- Chart.js Configuration ---
+                const platformCounts = {};
+                data.forEach(row => {
+                    const platform = row.preferred_platform;
+                    if (platform) {
+                        platformCounts[platform] = (platformCounts[platform] || 0) + 1;
+                    }
+                });
+
+                const platforms = Object.keys(platformCounts);
+                const counts = Object.values(platformCounts);
+                
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                const ctx = document.getElementById('platformChart').getContext('2d');
+                chartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: platforms,
+                        datasets: [{
+                            label: 'จำนวนผู้ใช้งาน',
+                            data: counts,
+                            backgroundColor: [
+                                '#3b82f6',
+                                '#10b981',
+                                '#f59e0b',
+                                '#ef4444',
+                                '#6366f1'
+                            ],
+                            borderColor: [
+                                '#1d4ed8',
+                                '#065f46',
+                                '#92400e',
+                                '#b91c1c',
+                                '#4338ca'
+                            ],
+                            borderWidth: 1,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#e5e7eb'
+                                },
+                                ticks: {
+                                    color: '#6b7280'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'จำนวนผู้ใช้งาน',
+                                    color: '#4b5563'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#6b7280'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'แพลตฟอร์ม',
+                                    color: '#4b5563'
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // --- Data Table Rendering & Filtering ---
+                const dataTableBody = document.getElementById('dataTableBody');
+                const searchInput = document.getElementById('searchInput');
+                const sortBySelect = document.getElementById('sort-by');
+                let currentData = data;
+
+                const renderTable = (tableData) => {
+                    dataTableBody.innerHTML = '';
+                    tableData.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.classList.add('hover:bg-gray-100', 'transition-colors', 'duration-200');
+                        Object.values(row).forEach(value => {
+                            const td = document.createElement('td');
+                            td.classList.add('py-3', 'px-4', 'border-b', 'border-gray-200', 'text-sm');
+                            td.textContent = value;
+                            tr.appendChild(td);
+                        });
+                        dataTableBody.appendChild(tr);
+                    });
+                };
+
+                const filterData = () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    const filteredData = initialData.filter(row => {
+                        return Object.values(row).some(value => {
+                            return value.toLowerCase().includes(searchTerm);
+                        });
+                    });
+                    currentData = filteredData;
+                    sortAndRender();
+                };
+
+                const sortAndRender = () => {
+                    const sortBy = sortBySelect.value;
+                    const sortedData = [...currentData].sort((a, b) => {
+                        const valA = parseFloat(a[sortBy]) || a[sortBy];
+                        const valB = parseFloat(b[sortBy]) || b[sortBy];
+                        if (typeof valA === 'number' && typeof valB === 'number') {
+                            return valB - valA;
+                        }
+                        if (valA < valB) return -1;
+                        if (valA > valB) return 1;
+                        return 0;
+                    });
+                    renderTable(sortedData);
+                };
+
+                searchInput.addEventListener('input', filterData);
+                sortBySelect.addEventListener('change', sortAndRender);
+
+                // Initial render
+                sortAndRender();
+            };
+
+            // Fetch data from the Google Sheets URL
+            fetch(CSV_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('ไม่สามารถเข้าถึงข้อมูลจาก URL ได้');
+                    }
+                    return response.text();
+                })
+                .then(csvText => {
+                    try {
+                        const data = parseCSV(csvText);
+                        initializeDashboard(data);
+                    } catch (error) {
+                        loadingMessage.innerHTML = `<h1 class="text-3xl font-bold text-red-600">เกิดข้อผิดพลาดในการประมวลผลข้อมูล</h1><p class="text-gray-600 mt-4">${error.message}</p>`;
+                        console.error(error);
+                    }
+                })
+                .catch(error => {
+                    loadingMessage.innerHTML = `<h1 class="text-3xl font-bold text-red-600">เกิดข้อผิดพลาดในการโหลดข้อมูล</h1><p class="text-gray-600 mt-4">${error.message}</p>`;
+                    console.error(error);
+                });
+        });
+    </script>
+</body>
+</html>
