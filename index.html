@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Elegant Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #121212; /* พื้นหลังสีดำ */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .profile-container {
+      max-width: 420px;
+      padding: 40px 30px;
+      background: #1e1e1e;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      text-align: center;
+      border: 1px solid rgba(255, 215, 0, 0.3); /* เส้นขอบทองอ่อน */
+    }
+
+    .profile-container img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 4px solid #ffd700; /* กรอบทอง */
+      margin-bottom: 18px;
+      box-shadow: 0 0 15px rgba(255,215,0,0.5);
+    }
+
+    .profile-container h1 {
+      margin: 12px 0 6px;
+      font-size: 22px;
+      font-weight: 600;
+      color: #ffd700; /* ทอง */
+    }
+
+    .profile-container p {
+      font-size: 14px;
+      margin: 5px 0;
+      color: #ddd; /* เทาอ่อน */
+    }
+
+    .contact-btn {
+      display: inline-block;
+      margin-top: 22px;
+      padding: 12px 30px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #121212;
+      background: #ffd700;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .contact-btn:hover {
+      background: #e6c200;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(255,215,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-container">
+    <img src="22.png" alt="Profile">
+    <h1>Phongsathon Kosasaeng</h1>
+    <p>E-mail: Phongsathon.kos@gmail.com</p>
+    <a href="mailto:Phongsathon.kos@gmail.com" class="contact-btn">CONTACT</a>
+  </div>
+</body>
+</html>
